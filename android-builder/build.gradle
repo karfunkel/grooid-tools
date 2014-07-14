@@ -1,0 +1,91 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+        //classpath 'com.android.tools.build:gradle:0.10.+'
+    }
+}
+
+apply plugin: 'groovy'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "${System.getenv('ANDROID_HOME')}/extras/android/m2repository"
+        //url "${System.getenv('ANDROID_HOME')}/extras/google/m2repository"
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    // ANDROID
+    compile files("${System.getenv('ANDROID_HOME')}/platforms/android-${androidSDKVersion}/android.jar")
+    compile files("${System.getenv('ANDROID_HOME')}/android-${androidSDKVersion}/data/res")
+    compile files("${System.getenv('ANDROID_HOME')}/tools/support/annotations.jar")
+
+    compile "com.android.support:support-v4:$androidApiVersion"
+    compile "com.android.support:appcompat-v7:$androidApiVersion"
+    compile "org.codehaus.groovy:groovy:$groovyVersion"
+
+    testCompile "org.spockframework:spock-core:$spockVersion", {
+        exclude module: "groovy-all"
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn:classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn:javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+// Deployment
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+publishing {
+    publications {
+        groovyMaven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+// set bintrayUser & bintrayKey in gradle.properties
+bintray {
+    user = getPropertyOrUseDefault("bintrayUser", "fake_user")
+    key = getPropertyOrUseDefault("bintrayKey", "fake_key")
+    publications = ['groovyMaven']
+
+    def projectName = project.name
+    def projectDescription = project.description
+
+    pkg {
+        repo = 'grooid-tools' // or your repo name
+        name = projectName // somehow project.* doesn't work in this closure
+        desc = projectDescription
+        websiteUrl = 'https://github.com/karfunkel/grooid-tools'
+        issueTrackerUrl = 'https://github.com/karfunkel/grooid-tools/issues'
+        licenses = ['Apache-2.0']
+        labels = ['Groovy', 'Android', 'Builder']
+    }
+    dryRun = true // whether to run this as dry-run, without deploying
+}
+
+String getPropertyOrUseDefault(String propertyName, String defaultValue) {
+    hasProperty(propertyName) ? getProperty(propertyName) : defaultValue
+}
+
