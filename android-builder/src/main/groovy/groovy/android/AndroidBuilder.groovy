@@ -62,7 +62,7 @@ class AndroidBuilder extends FactoryBuilderSupport {
         registerExplicitMethod('sp', 'conversion', this.&convertFrom.curry(TypedValue.COMPLEX_UNIT_SP))
         registerExplicitMethod('pt', 'conversion', this.&convertFrom.curry(TypedValue.COMPLEX_UNIT_PT))
         registerExplicitMethod('mm', 'conversion', this.&convertFrom.curry(TypedValue.COMPLEX_UNIT_MM))
-        registerExplicitMethod('in', 'conversion', this.&convertFrom.curry(TypedValue.COMPLEX_UNIT_IN))
+        registerExplicitMethod('inch', 'conversion', this.&convertFrom.curry(TypedValue.COMPLEX_UNIT_IN))
     }
 
     public Object build(Context androidContext, Closure c) {

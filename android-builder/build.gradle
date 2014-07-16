@@ -5,7 +5,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
-        //classpath 'com.android.tools.build:gradle:0.10.+'
+        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'org.robospock:robospock-plugin:0.4.0'
     }
 }
 
@@ -23,6 +24,10 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    testCompile "org.spockframework:spock-core:$spockVersion", { exclude module: "groovy-all" }
+    testCompile 'org.robospock:robospock:0.4.4', { exclude module: "groovy-all" }
+    testCompile "junit:junit:4.10"
+
     // ANDROID
     compile files("${System.getenv('ANDROID_HOME')}/platforms/android-${androidSDKVersion}/android.jar")
     compile files("${System.getenv('ANDROID_HOME')}/android-${androidSDKVersion}/data/res")
@@ -32,9 +37,6 @@ dependencies {
     compile "com.android.support:appcompat-v7:$androidApiVersion"
     compile "org.codehaus.groovy:groovy:$groovyVersion"
 
-    testCompile "org.spockframework:spock-core:$spockVersion", {
-        exclude module: "groovy-all"
-    }
 }
 
 task sourcesJar(type: Jar, dependsOn:classes) {
@@ -89,3 +91,13 @@ String getPropertyOrUseDefault(String propertyName, String defaultValue) {
     hasProperty(propertyName) ? getProperty(propertyName) : defaultValue
 }
 
+// Workaround for gradle-problem with grooid classifier
+tasks.withType(GroovyCompile){
+    groovyClasspath = configurations.compile
+}
+
+// Workaround for http://issues.gradle.org/browse/GRADLE-1682
+tasks.withType(Test) {
+    scanForTestClasses = false
+    include "**/*Spec.class"
+}
