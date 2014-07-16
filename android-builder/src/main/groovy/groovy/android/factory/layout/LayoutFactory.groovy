@@ -44,18 +44,19 @@ class LayoutFactory extends AndroidFactory {
             }
 
             LayoutFactory factory = builder.findPropertyInContextStack(CURRENT_LAYOUT_FACTORY)
+            if (factory) {
+                ViewGroup.LayoutParams params = node.layoutParams
+                if (params) {
+                    if (width != null)
+                        params.width = (int) width
+                    if (height != null)
+                        params.height = (int) height
+                } else {
+                    node.layoutParams = factory.createLayoutParams(width ?: ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, node, attributes)
+                }
 
-            ViewGroup.LayoutParams params = node.layoutParams
-            if (params) {
-                if (width != null)
-                    params.width = (int) width
-                if (height != null)
-                    params.height = (int) height
-            } else {
-                node.layoutParams = factory.createLayoutParams(width ?: ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, node, attributes)
+                factory.handleLayoutParams(builder, node, attributes)
             }
-
-            factory.handleLayoutParams(builder, node, attributes)
         }
     }
 

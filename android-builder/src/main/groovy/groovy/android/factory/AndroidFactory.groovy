@@ -58,7 +58,7 @@ class AndroidFactory extends AbstractFactory {
             if (context == null)
                 throw new IllegalArgumentException("Please provide a $Context.canonicalName as attribute context in this or a previous layer")
 
-            addContextProperties(builder.context, beanClass)
+            //addContextProperties(builder.context, beanClass)
 
             return this.newInstance(builder, context, name, value, attributes)
         } else
@@ -160,8 +160,10 @@ class AndroidFactory extends AbstractFactory {
                 def closure = attributes.remove(method.name)
                 if (closure)
                     listener[method.name] = closure
+                else
+                    listener[method.name] = new DummyClosure(adder, node)
             }
-            if (listener)
+            if (listener && listener.any { k, v -> !(v instanceof DummyClosure) })
                 adder.invoke(node, listener.asType(adder.parameterTypes[0]))
         }
     }

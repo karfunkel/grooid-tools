@@ -101,6 +101,7 @@ class TextViewFactory extends AndroidFactory {
             } else
                 throw new IllegalArgumentException("typeFace has to be of type $Typeface.canonicalName")
         }
+        return super.onHandleNodeAttributes(builder, node, attributes)
     }
 
     Locale toLocale(String code) {
