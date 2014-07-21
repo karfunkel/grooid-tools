@@ -153,4 +153,30 @@ class AndroidBuilderSpec extends Specification {
         view.is textView
         event.is me
     }
+
+    def "Test id handling"() {
+        when:
+        View ref
+        View view
+        builder.build(Robolectric.application) {
+            ref = textView(id: 'text')
+            view = text
+        }
+
+        then:
+        ref.is view
+        ref.is builder.getVariable('text')
+        ref.id == 'text'.hashCode()
+
+        when:
+        builder.build(Robolectric.application) {
+            ref = textView(id: 1000)
+        }
+
+        then:
+        ref.is builder.getVariable('id_1000')
+        ref.id == 1000
+    }
+
+    // TODO: layout properties handling
 }

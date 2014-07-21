@@ -74,13 +74,24 @@ class AndroidBuilder extends FactoryBuilderSupport {
     static objectIDAttributeDelegate(def builder, def node, def attributes) {
         def idAttr = builder.getAt(DELEGATE_PROPERTY_OBJECT_ID) ?: DEFAULT_DELEGATE_PROPERTY_OBJECT_ID
         def theID = attributes.remove(idAttr)
-        if (theID) {
-            builder.setVariable(theID, node)
-            if (node) {
-                try {
-                    if (!node.id) node.id = theID
-                } catch (MissingPropertyException mpe) {
-                    // ignore
+        if (theID != null) {
+            if (theID instanceof String) {
+                builder.setVariable(theID, node)
+                if (node) {
+                    try {
+                        if (node.id == -1) node.id = theID.hashCode()
+                    } catch (MissingPropertyException mpe) {
+                        // ignore
+                    }
+                }
+            } else if (theID instanceof Number) {
+                builder.setVariable("id_${theID.intValue()}".toString(), node)
+                if (node) {
+                    try {
+                        if (node.id == -1) node.id = theID.intValue()
+                    } catch (MissingPropertyException mpe) {
+                        // ignore
+                    }
                 }
             }
         }
@@ -95,7 +106,7 @@ class AndroidBuilder extends FactoryBuilderSupport {
                 context = context.get(PARENT_CONTEXT)
             }
         }
-        if(property == ANDROID_CONTEXT)
+        if (property == ANDROID_CONTEXT)
             return androidContext
         return null
     }
