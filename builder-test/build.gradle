@@ -1,0 +1,47 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
+        classpath 'se.centril.robospock:gradle-plugin-robospock:1.0.1'
+    }
+}
+
+apply plugin: 'groovy'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+configurations.all { exclude module: 'groovy' }
+
+ext {
+    projectToTest = 'android-builder'
+}
+
+dependencies {
+    testCompile fileTree(dir: 'libs', include: ['*.jar'])
+
+    testCompile project(path: ":$projectToTest", configuration: 'default')
+
+    testCompile 'org.codehaus.groovy:groovy:2.4.3:grooid'
+    testCompile 'com.android.support:support-v4:19.0.1'
+
+    testCompile fileTree(dir: "$rootDir/$projectToTest/build/intermediates/exploded-aar/com.android.support/support-v4/", include: "**/*.jar")
+
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
+
+apply plugin: 'robospock'
+
+robospock {
+    android = project( ':android-builder' )
+}
+
+task foo << {
+    configurations.testCompile.files.each {println it}
+}

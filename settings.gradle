@@ -1,1 +1,1 @@
-include ':android-builder' // , ':anotherTool'
+include ':android-builder', ':builder-test', ':sample'

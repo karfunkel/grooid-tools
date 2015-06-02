@@ -1,103 +1,84 @@
 buildscript {
     repositories {
         jcenter()
-        mavenCentral()
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
-        classpath 'com.android.tools.build:gradle:0.8.+'
-        classpath 'org.robospock:robospock-plugin:0.4.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+
+        classpath 'com.android.tools.build:gradle:1.2.3'
+        classpath 'org.codehaus.groovy:gradle-groovy-android-plugin:0.3.6'
     }
 }
 
-apply plugin: 'groovy'
+apply plugin: 'maven'
+
+// use com.android.library instead of com.android.application for libraries
+apply plugin: 'com.android.library'
+apply plugin: 'groovyx.grooid.groovy-android'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '22.0.1'
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+}
 
 repositories {
+    mavenLocal()
     jcenter()
-    mavenCentral()
-    maven {
-        url "${System.getenv('ANDROID_HOME')}/extras/android/m2repository"
-        //url "${System.getenv('ANDROID_HOME')}/extras/google/m2repository"
-    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    testCompile "org.spockframework:spock-core:$spockVersion", { exclude module: "groovy-all" }
-    testCompile 'org.robospock:robospock:0.4.4', { exclude module: "groovy-all" }
-    testCompile "junit:junit:4.10"
-
-    // ANDROID
-    compile files("${System.getenv('ANDROID_HOME')}/platforms/android-${androidSDKVersion}/android.jar")
-    compile files("${System.getenv('ANDROID_HOME')}/android-${androidSDKVersion}/data/res")
-    compile files("${System.getenv('ANDROID_HOME')}/tools/support/annotations.jar")
-
-    compile "com.android.support:support-v4:$androidApiVersion"
-    compile "com.android.support:appcompat-v7:$androidApiVersion"
-    compile "org.codehaus.groovy:groovy:$groovyVersion"
-
+    compile 'org.codehaus.groovy:groovy:2.4.3:grooid'
+    compile 'com.android.support:support-v4:19.0.1'
 }
 
-task sourcesJar(type: Jar, dependsOn:classes) {
+task sourcesJar(type: Jar) {
     classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn:javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
+    from android.sourceSets.main.java.srcDirs
 }
 
 artifacts {
     archives sourcesJar
-    archives javadocJar
 }
 
 // Deployment
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
-
-publishing {
-    publications {
-        groovyMaven(MavenPublication) {
-            from components.java
-        }
-    }
-}
 
 // set bintrayUser & bintrayKey in gradle.properties
 bintray {
-    user = getPropertyOrUseDefault("bintrayUser", "fake_user")
-    key = getPropertyOrUseDefault("bintrayKey", "fake_key")
+    user = properties.bintrayUser ?: "fake_user"
+    key = properties.bintrayKey ?: "fake_key"
     publications = ['groovyMaven']
-
-    def projectName = project.name
-    def projectDescription = project.description
 
     pkg {
         repo = 'grooid-tools' // or your repo name
-        name = projectName // somehow project.* doesn't work in this closure
-        desc = projectDescription
+        name = project.name // somehow project.* doesn't work in this closure
+        desc = project.description
         websiteUrl = 'https://github.com/karfunkel/grooid-tools'
         issueTrackerUrl = 'https://github.com/karfunkel/grooid-tools/issues'
         licenses = ['Apache-2.0']
         labels = ['Groovy', 'Android', 'Builder']
     }
     dryRun = true // whether to run this as dry-run, without deploying
-}
-
-String getPropertyOrUseDefault(String propertyName, String defaultValue) {
-    hasProperty(propertyName) ? getProperty(propertyName) : defaultValue
-}
-
-// Workaround for gradle-problem with grooid classifier
-tasks.withType(GroovyCompile){
-    groovyClasspath = configurations.compile
-}
-
-// Workaround for http://issues.gradle.org/browse/GRADLE-1682
-tasks.withType(Test) {
-    scanForTestClasses = false
-    include "**/*Spec.class"
 }
