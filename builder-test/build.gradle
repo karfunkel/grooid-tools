@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 
-configurations.all { exclude module: 'groovy' }
+configurations.all { exclude module: 'groovy-all' }
 
 ext {
     projectToTest = 'android-builder'
@@ -26,7 +26,7 @@ dependencies {
 
     testCompile project(path: ":$projectToTest", configuration: 'default')
 
-    testCompile 'org.codehaus.groovy:groovy:2.4.3:grooid'
+    testCompile 'org.codehaus.groovy:groovy:2.4.3'
     testCompile 'com.android.support:support-v4:19.0.1'
 
     testCompile fileTree(dir: "$rootDir/$projectToTest/build/intermediates/exploded-aar/com.android.support/support-v4/", include: "**/*.jar")
